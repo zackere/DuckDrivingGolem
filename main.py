@@ -8,6 +8,7 @@ no_frames=1000;
 env=gym.make("Duckietown-straight_road-v0")
 env=EnvWithHistoryWrapper(env,range(5))
 env.reset()
+print(env.wrapped.camera_height, env.wrapped.camera_width);
 
 for _ in range(no_sessions):
 	env.reset()
