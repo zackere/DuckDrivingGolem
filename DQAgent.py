@@ -15,6 +15,8 @@ class DQNAgent:
         self.epsilon_decay = 0.995
         self.learning_rate = 0.001
         self.model = self._build_model()
+        self.target_model = self._build_model()
+        self.update_target_model()
 
     def _build_model(self):
         # Neural Net for Deep-Q learning Model
@@ -29,13 +31,13 @@ class DQNAgent:
     def remember(self, state, action, reward, next_state, done):
         self.memory.append((state, action, reward, next_state, done))
 
+    def update_target_model(self):
+        self.target_model.set_weights(self.model.get_weights())
+
     def act(self, state):
         if np.random.rand() <= self.epsilon:
-            print("RANDOM")
             return [[random.uniform(-1,1), random.uniform(-1,1)]]
         act_values = self.model.predict(state)
-        print("NOTRANDOM")
-        print(act_values)
         return act_values  # returns action
 
     def replay(self, batch_size):
