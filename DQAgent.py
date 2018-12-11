@@ -1,9 +1,13 @@
+import random
+import gym
 import numpy as np
 from collections import deque
 from keras.models import Sequential
 from keras.layers import Dense
 from keras.optimizers import Adam
-import random
+
+EPISODES = 1000
+
 class DQNAgent:
     def __init__(self, state_size, action_size):
         self.state_size = state_size
@@ -15,8 +19,6 @@ class DQNAgent:
         self.epsilon_decay = 0.995
         self.learning_rate = 0.001
         self.model = self._build_model()
-        self.target_model = self._build_model()
-        self.update_target_model()
 
     def _build_model(self):
         # Neural Net for Deep-Q learning Model
@@ -31,14 +33,11 @@ class DQNAgent:
     def remember(self, state, action, reward, next_state, done):
         self.memory.append((state, action, reward, next_state, done))
 
-    def update_target_model(self):
-        self.target_model.set_weights(self.model.get_weights())
-
     def act(self, state):
         if np.random.rand() <= self.epsilon:
-            return [[random.uniform(-1,1), random.uniform(-1,1)]]
+            return random.randrange(self.action_size)
         act_values = self.model.predict(state)
-        return act_values  # returns action
+        return np.argmax(act_values[0])  # returns action
 
     def replay(self, batch_size):
         minibatch = random.sample(self.memory, batch_size)
@@ -46,8 +45,9 @@ class DQNAgent:
             target = reward
             if not done:
                 target = (reward + self.gamma *
-                          np.amax(self.model.predict(next_state)))
+                          np.amax(self.model.predict(next_state)[0]))
             target_f = self.model.predict(state)
+            target_f[0][action] = target
             self.model.fit(state, target_f, epochs=1, verbose=0)
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
